@@ -100,7 +100,7 @@ ok "libimobiledevice tools verified"
 # ── Fetch latest release ──────────────────────────────────────────────────────
 header "Fetching latest release..."
 
-RELEASE_JSON=$(curl -fsSL "$GITHUB_API") || err "Could not reach GitHub API. Check your internet connection."
+RELEASE_JSON=$(curl -fsSL --max-time 10 "$GITHUB_API" 2>/dev/null) || true
 RELEASE_TAG=$(echo "$RELEASE_JSON" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
 [[ -z "$RELEASE_TAG" ]] && err "Could not determine latest release tag. Make sure the repo is public with at least one release."
 
