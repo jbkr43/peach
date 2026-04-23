@@ -1,0 +1,2 @@
+# Peach - trigger on iOS device connect
+SUBSYSTEM=="usb", ATTRS{idVendor}=="05ac", ENV{ID_USB_INTERFACES}=="*:ff000000:*", TAG+="uaccess", SYMLINK+="peach-ios"

@@ -1,0 +1,16 @@
+[Unit]
+Description=Peach - iOS Backup Manager
+After=network.target
+
+[Service]
+Type=simple
+User=%i
+ExecStart=/opt/peach/venv/bin/python /opt/peach/backend/main.py
+WorkingDirectory=/opt/peach
+Restart=on-failure
+RestartSec=5
+Environment=PEACH_CONFIG=/etc/peach/config.json
+Environment=PEACH_STATIC=/opt/peach/ui
+
+[Install]
+WantedBy=multi-user.target
