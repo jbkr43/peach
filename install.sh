@@ -100,12 +100,18 @@ ok "libimobiledevice tools verified"
 # ── Fetch latest release ──────────────────────────────────────────────────────
 header "Fetching latest release..."
 
-RELEASE_JSON=$(curl -fsSL --max-time 10 "$GITHUB_API" 2>/dev/null) || true
-RELEASE_TAG=$(echo "$RELEASE_JSON" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
-[[ -z "$RELEASE_TAG" ]] && err "Could not determine latest release tag. Make sure the repo is public with at least one release."
+RELEASE_TAG=""
+RELEASE_JSON=$(curl -fsSL --max-time 10 "$GITHUB_API" 2>/dev/null) && \
+  RELEASE_TAG=$(echo "$RELEASE_JSON" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/') || true
 
-ok "Latest release: ${BOLD}${RELEASE_TAG}${NC}"
-BASE_URL="https://raw.githubusercontent.com/${GITHUB_REPO}/${RELEASE_TAG}"
+if [[ -n "$RELEASE_TAG" ]]; then
+  ok "Latest release: ${BOLD}${RELEASE_TAG}${NC}"
+  BASE_URL="https://raw.githubusercontent.com/${GITHUB_REPO}/refs/tags/${RELEASE_TAG}"
+else
+  log "Could not fetch release tag, installing from ${BOLD}main${NC}..."
+  RELEASE_TAG="main"
+  BASE_URL="https://raw.githubusercontent.com/${GITHUB_REPO}/main"
+fi
 
 # ── Download app files ────────────────────────────────────────────────────────
 header "Downloading Peach ${RELEASE_TAG}..."
@@ -117,15 +123,15 @@ download() {
   curl -fsSL "$url" -o "$dest" || err "Failed to download: $url"
 }
 
-download "${BASE_URL}/main.py"          "${PEACH_DIR}/main.py"
-download "${BASE_URL}/requirements.txt" "${PEACH_DIR}/requirements.txt"
-download "${BASE_URL}/index.html"            "${PEACH_DIR}/index.html"
+download "${BASE_URL}/main.py"          "${PEACH_DIR}/backend/main.py"
+download "${BASE_URL}/requirements.txt" "${PEACH_DIR}/backend/requirements.txt"
+download "${BASE_URL}/index.html"            "${PEACH_DIR}/ui/index.html"
 ok "App files downloaded to ${PEACH_DIR}"
 
 # ── Python venv ───────────────────────────────────────────────────────────────
 log "Setting up Python virtual environment..."
 python3 -m venv "${PEACH_DIR}/venv"
-"${PEACH_DIR}/venv/bin/pip" install -q -r "${PEACH_DIR}/requirements.txt"
+"${PEACH_DIR}/venv/bin/pip" install -q -r "${PEACH_DIR}/backend/requirements.txt"
 ok "Python environment ready"
 
 # ── Write config ──────────────────────────────────────────────────────────────
