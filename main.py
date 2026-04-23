@@ -283,8 +283,12 @@ async def websocket_endpoint(ws: WebSocket):
 
 # ── Static UI ─────────────────────────────────────────────────────────────────
 
+@app.get("/")
+async def serve_index():
+    return FileResponse(str(STATIC_DIR / "index.html"))
+
 if STATIC_DIR.exists():
-    app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="ui")
+    app.mount("/assets", StaticFiles(directory=str(STATIC_DIR)), name="ui")
 
 
 if __name__ == "__main__":
