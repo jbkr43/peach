@@ -105,7 +105,7 @@ RELEASE_TAG=$(echo "$RELEASE_JSON" | grep '"tag_name"' | head -1 | sed 's/.*"tag
 [[ -z "$RELEASE_TAG" ]] && err "Could not determine latest release tag. Make sure the repo is public with at least one release."
 
 ok "Latest release: ${BOLD}${RELEASE_TAG}${NC}"
-BASE_URL="https://raw.githubusercontent.com/${GITHUB_REPO}/${RELEASE_TAG}"
+BASE_URL="https://raw.githubusercontent.com/${GITHUB_REPO}/refs/tags/${RELEASE_TAG}"
 
 # ── Download app files ────────────────────────────────────────────────────────
 header "Downloading Peach ${RELEASE_TAG}..."
@@ -117,9 +117,9 @@ download() {
   curl -fsSL "$url" -o "$dest" || err "Failed to download: $url"
 }
 
-download "${BASE_URL}/backend/main.py"          "${PEACH_DIR}/backend/main.py"
-download "${BASE_URL}/backend/requirements.txt" "${PEACH_DIR}/backend/requirements.txt"
-download "${BASE_URL}/ui/index.html"            "${PEACH_DIR}/ui/index.html"
+download "${BASE_URL}/main.py"          "${PEACH_DIR}/backend/main.py"
+download "${BASE_URL}/requirements.txt" "${PEACH_DIR}/backend/requirements.txt"
+download "${BASE_URL}/index.html"            "${PEACH_DIR}/ui/index.html"
 ok "App files downloaded to ${PEACH_DIR}"
 
 # ── Python venv ───────────────────────────────────────────────────────────────
@@ -138,12 +138,12 @@ EOF
 ok "Config written to ${CONFIG_DIR}/config.json"
 
 # ── udev rule ─────────────────────────────────────────────────────────────────
-download "${BASE_URL}/scripts/99-peach-ios.rules" "${UDEV_RULE}"
+download "${BASE_URL}/99-peach-ios.rules" "${UDEV_RULE}"
 udevadm control --reload-rules 2>/dev/null || true
 ok "udev rule installed"
 
 # ── systemd service ───────────────────────────────────────────────────────────
-download "${BASE_URL}/scripts/peach.service" "${SERVICE_FILE}"
+download "${BASE_URL}/peach.service" "${SERVICE_FILE}"
 
 sed -i "s|User=%i|User=${REAL_USER}|g"                                  "${SERVICE_FILE}"
 sed -i "s|/opt/peach/venv|${PEACH_DIR}/venv|g"                         "${SERVICE_FILE}"
